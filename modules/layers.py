@@ -50,20 +50,17 @@ class ConvolutionLayer:
             for oc in range(self.out_channels):
                 for oh in range(out_height):
                     for ow in range(out_width):
-                        # Extracting the receptive field
-                        # Calculate start and end indices for height
+                        
                         h_start = oh * self.stride
                         h_end = h_start + self.kernel_size
 
-                        # Calculate start and end indices for width
                         w_start = ow * self.stride
                         w_end = w_start + self.kernel_size
 
-                        # Extract the receptive field using calculated indices
-                        receptive_field = inputs[b, :, h_start:h_end, w_start:w_end]
+                        smaller_matrix = inputs[b, :, h_start:h_end, w_start:w_end]
 
-                        # Performing convolution
-                        convolution_result = np.sum(receptive_field * self.weights[oc])
+                        # Convolution
+                        convolution_result = np.sum(smaller_matrix * self.weights[oc])
                         convolution_result += self.bias[oc]
                         outputs[b, oc, oh, ow] = convolution_result
 
@@ -93,9 +90,9 @@ class ConvolutionLayer:
             )
 
         # ================ Insert Code Here ================
-        batch_size, _, out_height, out_width = d_outputs.shape
+        batch_size, out_channels, out_height, out_width = d_outputs.shape
 
-        # Initialize gradients
+        
         d_weights = np.zeros(self.weights.shape)
         d_bias = np.zeros(self.bias.shape)
         d_output = np.zeros(self.inputs.shape)
@@ -109,13 +106,11 @@ class ConvolutionLayer:
                         w_start = ow * self.stride
                         w_end = w_start + self.kernel_size
 
-                        # Gradient with respect to the output (d_outputs) is used to calculate gradients
-                        # with respect to weights, bias, and inputs
-                        receptive_field = self.inputs[b, :, h_start:h_end, w_start:w_end]
-                        d_weights[oc] += d_outputs[b, oc, oh, ow] * receptive_field
+                        #
+                        smaller_matrix = self.inputs[b, :, h_start:h_end, w_start:w_end]
+                        d_weights[oc] += d_outputs[b, oc, oh, ow] * smaller_matrix
                         d_bias[oc] += d_outputs[b, oc, oh, ow]
 
-                        # Distribute the gradient back to the inputs
                         d_output[b, :, h_start:h_end, w_start:w_end] += self.weights[oc] * d_outputs[b, oc, oh, ow]  
                         
         gradients = {
@@ -130,7 +125,6 @@ class ConvolutionLayer:
     def update(self, d_weights, d_bias, learning_rate):
 
         # ================ Insert Code Here ================
-        # Update weights and biases with gradients
         self.weights = self.weights - learning_rate * d_weights
         self.bias = self.bias - learning_rate * d_bias
         # ==================================================
@@ -199,7 +193,6 @@ class LinearLayer:
         d_bias = np.sum(d_outputs, axis=0)
         d_outputs = np.dot(d_outputs, self.weights)
 
-        # Prepare derivatives for update
         derivatives = {
             "d_weights": d_weights,
             "d_bias": d_bias,

@@ -35,7 +35,8 @@ class ReLU:
             should be "d_out"
         """
         # ================ Insert Code Here ================
-        d_inputs = d_outputs * (self.inputs > 0)
+        d_inputs = np.array(d_outputs, copy=True) 
+        d_inputs[self.inputs <= 0] = 0 
         return {"d_out": d_inputs}
         # ==================================================
 
@@ -85,7 +86,6 @@ class Sigmoid:
 class Softmax:
     def __init__(self):
         self.inputs = None
-        self.outputs=None
         self.has_weights = False
 
     def forward(self, inputs):
@@ -101,6 +101,7 @@ class Softmax:
         self.inputs = inputs
 
         # ================ Insert Code Here ================
+        """Forward pass for the Softmax activation function."""
         exp_values = np.exp(inputs - np.max(inputs, axis=1, keepdims=True))
         self.outputs = exp_values / np.sum(exp_values, axis=1, keepdims=True)
         return self.outputs
@@ -117,20 +118,6 @@ class Softmax:
             respect to the output of the layer. The key of the dictionary
             should be "d_out"
         """
-
         # ================ Insert Code Here ================
-        # Initialize the derivative of the inputs matrix.
-        d_inputs = np.empty_like(d_outputs)
-
-        # Iterate through each sample in the batch.
-        for index, (single_output, single_d_output) in enumerate(zip(self.outputs, d_outputs)):
-            # Reshape single_output to a column vector
-            single_output = single_output.reshape(-1, 1)
-            # Compute the Jacobian matrix for the Softmax function
-            jacobian_matrix = np.diagflat(single_output) - np.dot(single_output, single_output.T)
-            
-            # Apply the chain rule to get the derivative of the loss with respect to the inputs of the softmax.
-            d_inputs[index] = np.dot(jacobian_matrix, single_d_output)
-        
-        return {"d_out": d_inputs}
+        return {"d_out": d_outputs}
         # ==================================================

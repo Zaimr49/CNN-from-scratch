@@ -22,11 +22,15 @@ class CrossEntropy:
         self.targets = targets
 
         # ================ Insert Code Here ================
-        # Prevent division by zero and stabilize the log function
-        inputs_clipped = np.clip(inputs, self.eps, 1 - self.eps)
 
-        # Calculate cross-entropy loss
-        loss = -np.sum(targets * np.log(inputs_clipped)) / inputs.shape[0]
+        # Removing Zeros to Prevent Log(0)
+        clipped_inputs = np.clip(inputs, self.eps, 1 - self.eps)
+
+        step1 = np.log(clipped_inputs)
+        step2 = targets * step1
+        step3 = np.sum(step2)
+        step4 = step3/inputs.shape[0]
+        loss = -step4
         return loss
 
         # raise NotImplementedError
@@ -44,16 +48,7 @@ class CrossEntropy:
             The key of the dictionary should be "d_out"
         """
         # ================ Insert Code Here ================
-        # Number of samples
-        num_samples = self.targets.shape[0]
-
-        # The gradient of cross-entropy loss with respect to the inputs is
-        # the difference between the predictions and the true values.
-        # For softmax activation + cross-entropy loss, this simplifies to:
-        # dL/dy = y_pred - y_true
         d_out = (self.inputs - self.targets) 
-
-        # Wrap the gradient in a dictionary and return
         grad_output = {"d_out": d_out}
         return grad_output        
     # ==================================================
